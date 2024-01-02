@@ -3,10 +3,21 @@ package main
 import (
 	"net/http"
 	"regexp"
+
+	"github.com/hyprhex/rest-api-go-stdlib/pkg/recipes"
 )
 
 type homeHandler struct{}
-type RecipesHandler struct{}
+type RecipesHandler struct{
+	store recipeStore
+}
+type recipeStore interface {
+	Add(name string, recipe recipes.Recipe) error
+	Get(name string) (recipes.Recipe, error)
+	Update(name string, recipe recipes.Recipe) error
+	List()(map[string]recipes.Recipe, error)
+	Remove(name string) error
+}
 
 var (
     RecipeRe       = regexp.MustCompile(`^/recipes/*$`)
@@ -37,6 +48,12 @@ func (h *RecipesHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
     default:
         return
     }
+}
+
+func NewRecipesHandler(s recipeStore) *RecipesHandler {
+	return &RecipesHandler{
+		store: s,
+	}
 }
 
 func (h *RecipesHandler) CreateRecipe(w http.ResponseWriter, r *http.Request) {}
